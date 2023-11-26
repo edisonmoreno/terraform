@@ -126,9 +126,9 @@ resource "aws_instance" "move-ms-security" {
     security_groups = [aws_security_group.move_security_group.id]
     user_data = <<EOF
         #!/bin/bash
-        sudo yum install docker -y
-        sudo service docker start
-        sudo docker run -d -p 8080:8021 edisonmorenoco/ms-move-security:latest
+        yum install docker -y
+        service docker start
+        docker run -d -p 8080:8021 edisonmorenoco/ms-move-security:latest
         EOF
     tags = {
         name = "move-ms-security-${count.index + 1}"
@@ -138,7 +138,15 @@ resource "aws_instance" "move-ms-security" {
 #     count         = 2
 #     ami           = var.ami_microservice
 #     instance_type = var.ec2_instance_type
-#     subnet_id     = aws_subnet.move_subnet2.id
+#     subnet_id     = aws_subnet.move_subnet1.id
+#     key_name      = "move-keypair"
+#     security_groups = [aws_security_group.move_security_group.id]
+#     user_data = <<EOF
+#         #!/bin/bash
+#         yum install docker -y
+#         service docker start
+#         docker run -d -p 8080:8021 edisonmorenoco/ms-move-admin:latest
+#         EOF
 #     tags = {
 #         name = "move-ms-admin-${count.index + 1}"
 #     }
@@ -147,54 +155,16 @@ resource "aws_instance" "move-ms-security" {
 #     count         = 2
 #     ami           = var.ami_microservice
 #     instance_type = var.ec2_instance_type
-#     subnet_id     = aws_subnet.move_subnet3.id
+#     subnet_id     = aws_subnet.move_subnet1.id
+#     key_name      = "move-keypair"
+#     security_groups = [aws_security_group.move_security_group.id]
+#     user_data = <<EOF
+#         #!/bin/bash
+#         yum install docker -y
+#         service docker start
+#         docker run -d -p 8080:8021 edisonmorenoco/ms-move-trip:latest
+#         EOF
 #     tags = {
 #         name = "move-ms-trip-${count.index + 1}"
 #     }
-# }
-
-# # Crear un clúster ECS
-# resource "aws_ecs_cluster" "move-ecs-cluster" {
-#     name = "move-ecs-cluster"
-# }
-
-# # Crear una definición de tarea para el microservicio
-# resource "aws_ecs_task_definition" "move-task-ms-security" {
-#     family                   = "move-task-ms-security"
-#     network_mode             = "awsvpc"
-#     requires_compatibilities = ["EC2"]
-#     cpu                      = 256
-#     memory                   = 512
-#     container_definitions = jsonencode([
-#     {
-#         name  = "ms-security"
-#         image = "304671886145.dkr.ecr.us-east-1.amazonaws.com/ms-move-security:latest"
-#         ports = [
-#         {
-#             container_port = 8021
-#         }
-#         ]      
-#     },
-#   ])
-# }
-
-# resource "aws_ecs_task_definition" "move-task-security" {
-#   family = "move-ecs-task-security"
-#   requires_compatibilities = ["FARGATE"]
-#   network_mode             = "awsvpc"
-#   cpu                      = 256
-#   memory                   = 512
-#   execution_role_arn = "arn:aws:iam::304671886145:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS"
-#   container_definitions = jsonencode([
-#     {
-#       name = "move-ms-security"
-#       image = "304671886145.dkr.ecr.us-east-1.amazonaws.com/ms-move-security:latest"
-#       ports = [
-#         {
-#           container_port = 8021
-#         }
-#       ]
-#     }
-#   ])
-#   depends_on = [aws_ecs_cluster.move-ecs-cluster]
 # }
