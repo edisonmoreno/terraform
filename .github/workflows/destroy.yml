@@ -21,7 +21,7 @@ permissions:
 jobs:
     terraform-destroy:
         name: terraform-destroy
-        runs-on: amazon-linux
+        runs-on: ubuntu-latest
 
         steps:
             - name: Checkout

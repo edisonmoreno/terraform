@@ -14,7 +14,7 @@ permissions:
 jobs:
     terraform-deploy:
         name: terraform-deploy
-        runs-on: amazon-linux
+        runs-on: ubuntu-latest
 
         steps:
             - name: Checkout
