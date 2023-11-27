@@ -6,7 +6,7 @@ resource "aws_vpc" "move_vpc" {
     enable_dns_support   = true
     tags = {
         app  = "move"
-        name = "move-vpc"
+        Name = "move-vpc"
     }
 }
 
@@ -18,7 +18,7 @@ resource "aws_subnet" "move_subnet1" {
     map_public_ip_on_launch = true
     tags = {
         app  = "move"
-        name = "move-subnet-1"
+        Name = "move-subnet-1"
     }
     depends_on = [
         aws_vpc.move_vpc
@@ -31,8 +31,8 @@ resource "aws_subnet" "move_subnet2" {
     availability_zone       = "us-east-1b"
     map_public_ip_on_launch = true
     tags = {
-        name = "move-subnet-2"
         app  = "move"
+        Name = "move-subnet-2"
     }
     depends_on = [
         aws_vpc.move_vpc
@@ -46,7 +46,7 @@ resource "aws_subnet" "move_subnet3" {
     map_public_ip_on_launch = true
     tags = {
         app  = "move"
-        name = "move-subnet-3"
+        Name = "move-subnet-3"
     }
     depends_on = [
         aws_vpc.move_vpc
@@ -72,7 +72,7 @@ resource "aws_internet_gateway" "move_internet_gateway" {
   vpc_id = aws_vpc.move_vpc.id
   tags = {
     app  = "move"
-    name = "move-internet-gateway"
+    Name = "move-internet-gateway"
   }
 }
 
@@ -85,7 +85,7 @@ resource "aws_route_table" "move_route_table" {
   }
   tags = {
     app  = "move"
-    name = "move-route-table"
+    Name = "move-route-table"
   }
   depends_on = [
     aws_internet_gateway.move_internet_gateway
@@ -113,7 +113,11 @@ resource "aws_security_group" "move_security_group" {
         to_port = 0
         protocol = "-1"
         cidr_blocks = ["0.0.0.0/0"]
-    }  
+    }
+    tags = {
+        app  = "move"
+        Name = "move_security_group"
+    }
 }
 
 # Creación de instancias
@@ -124,47 +128,32 @@ resource "aws_instance" "move-ms-security" {
     subnet_id     = aws_subnet.move_subnet1.id
     key_name      = "move-keypair"
     security_groups = [aws_security_group.move_security_group.id]
-    user_data = <<EOF
-        #!/bin/bash
-        yum install docker -y
-        service docker start
-        docker run -d -p 8080:8021 edisonmorenoco/ms-move-security:latest
-        EOF
+    user_data = "${file("scripts/user-data-ms-move-security.sh")}"
     tags = {
-        name = "move-ms-security-${count.index + 1}"
+        Name = "move-ms-security-${count.index + 1}"
     }
 }
-# resource "aws_instance" "move-ms-admin" {
-#     count         = 2
-#     ami           = var.ami_microservice
-#     instance_type = var.ec2_instance_type
-#     subnet_id     = aws_subnet.move_subnet1.id
-#     key_name      = "move-keypair"
-#     security_groups = [aws_security_group.move_security_group.id]
-#     user_data = <<EOF
-#         #!/bin/bash
-#         yum install docker -y
-#         service docker start
-#         docker run -d -p 8080:8021 edisonmorenoco/ms-move-admin:latest
-#         EOF
-#     tags = {
-#         name = "move-ms-admin-${count.index + 1}"
-#     }
-# }
-# resource "aws_instance" "move-ms-trip" {
-#     count         = 2
-#     ami           = var.ami_microservice
-#     instance_type = var.ec2_instance_type
-#     subnet_id     = aws_subnet.move_subnet1.id
-#     key_name      = "move-keypair"
-#     security_groups = [aws_security_group.move_security_group.id]
-#     user_data = <<EOF
-#         #!/bin/bash
-#         yum install docker -y
-#         service docker start
-#         docker run -d -p 8080:8021 edisonmorenoco/ms-move-trip:latest
-#         EOF
-#     tags = {
-#         name = "move-ms-trip-${count.index + 1}"
-#     }
-# }
+resource "aws_instance" "move-ms-admin" {
+    count         = 2
+    ami           = var.ami_microservice
+    instance_type = var.ec2_instance_type
+    subnet_id     = aws_subnet.move_subnet2.id
+    key_name      = "move-keypair"
+    security_groups = [aws_security_group.move_security_group.id]
+    user_data = "${file("scripts/user-data-ms-move-admin.sh")}"
+    tags = {
+        Name = "move-ms-admin-${count.index + 1}"
+    }
+}
+resource "aws_instance" "move-ms-trip" {
+    count         = 2
+    ami           = var.ami_microservice
+    instance_type = var.ec2_instance_type
+    subnet_id     = aws_subnet.move_subnet3.id
+    key_name      = "move-keypair"
+    security_groups = [aws_security_group.move_security_group.id]
+    user_data = "${file("scripts/user-data-ms-move-trip.sh")}"
+    tags = {
+        Name = "move-ms-trip-${count.index + 1}"
+    }
+}
